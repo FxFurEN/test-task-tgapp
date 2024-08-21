@@ -1,6 +1,7 @@
 import { fetchHoroscope } from '@/api/post'
 import { ZodiacSign } from '@/components/ZodiacSign'
 import { useLanguage } from '@/context/LanguageContext'
+import { initBackButton } from '@telegram-apps/sdk'
 import {
 	Button,
 	Card,
@@ -13,6 +14,8 @@ import {
 } from '@telegram-apps/telegram-ui'
 import WebApp from '@twa-dev/sdk'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
+
+const [backButton] = initBackButton()
 
 const zodiacSigns = [
 	{
@@ -116,11 +119,8 @@ export const IndexPage: FC = () => {
 		setShowDescription(true)
 	}, [])
 
-	const handleCloseDescription = () => {
-		setShowDescription(false)
-		setDescription(null)
-		setSelectedSign(null)
-	}
+	backButton.show()
+	console.log(backButton.isVisible)
 
 	return (
 		<Section header={translations.zodiacPageHeader}>
@@ -151,7 +151,6 @@ export const IndexPage: FC = () => {
 				</Placeholder>
 			) : (
 				<Placeholder>
-					<Button onClick={handleCloseDescription}>Назад</Button>
 					<Image
 						src={
 							zodiacSigns.find(sign => sign.name === selectedSign)?.iconUrl ||
