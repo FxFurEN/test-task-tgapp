@@ -12,7 +12,7 @@ import {
 	Title,
 } from '@telegram-apps/telegram-ui'
 import WebApp from '@twa-dev/sdk'
-import { FC, useCallback, useMemo, useState } from 'react'
+import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 
 const zodiacSigns = [
 	{
@@ -83,31 +83,38 @@ export const IndexPage: FC = () => {
 	const [description, setDescription] = useState<string | null>(null)
 	const [showDescription, setShowDescription] = useState(false)
 	const [loading, setLoading] = useState<boolean>(false) // Состояние загрузки
+
 	const userLanguageCode =
 		(WebApp.initDataUnsafe?.user as { language_code?: string })
 			?.language_code || 'en'
+
 	const t = useMemo(
 		() => translations[userLanguageCode] || translations.en,
 		[userLanguageCode]
 	)
 
-	const handleSignClick = useCallback(
-		async (sign: string) => {
-			setSelectedSign(sign)
-			setShowDescription(true)
-			setLoading(true) // Начало загрузки
-			const lang = language === 'en' ? 'translated' : 'original'
-			try {
-				const data = await fetchHoroscope(sign.toLowerCase(), lang)
-				setDescription(data.horoscope)
-			} catch (error) {
-				console.error('Failed to fetch horoscope', error)
-			} finally {
-				setLoading(false) // Завершение загрузки
+	useEffect(() => {
+		if (selectedSign) {
+			const fetchAndUpdateDescription = async () => {
+				setLoading(true)
+				const lang = language === 'en' ? 'translated' : 'original'
+				try {
+					const data = await fetchHoroscope(selectedSign.toLowerCase(), lang)
+					setDescription(data.horoscope)
+				} catch (error) {
+					console.error('Failed to fetch horoscope', error)
+				} finally {
+					setLoading(false)
+				}
 			}
-		},
-		[language]
-	)
+			fetchAndUpdateDescription()
+		}
+	}, [language, selectedSign])
+
+	const handleSignClick = useCallback(async (sign: string) => {
+		setSelectedSign(sign)
+		setShowDescription(true)
+	}, [])
 
 	const handleCloseDescription = () => {
 		setShowDescription(false)
@@ -160,13 +167,7 @@ export const IndexPage: FC = () => {
 					/>
 					<Title>{translations[selectedSign] || selectedSign}</Title>
 					<Text>{translations.todayHoroscope}</Text>
-					{loading ? (
-						<Spinner size='m' />
-					) : (
-						<>
-							<Text>{description}</Text>
-						</>
-					)}
+					{loading ? <Spinner size='m' /> : <Text>{description}</Text>}
 				</Placeholder>
 			)}
 		</Section>
