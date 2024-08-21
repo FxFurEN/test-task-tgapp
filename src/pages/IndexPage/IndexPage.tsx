@@ -79,9 +79,17 @@ const zodiacSigns = [
 		iconUrl: 'https://www.svgrepo.com/show/474313/pisces.svg',
 	},
 ]
+interface Translations {
+	[key: string]: string
+}
 
 export const IndexPage: FC = () => {
-	const { language, setLanguage, translations } = useLanguage()
+	const { language, setLanguage, translations } = useLanguage() as {
+		language: string
+		setLanguage: (lang: string) => void
+		translations: Translations
+	}
+
 	const [selectedSign, setSelectedSign] = useState<string | null>(null)
 	const [description, setDescription] = useState<string | null>(null)
 	const [showDescription, setShowDescription] = useState(false)
