@@ -1,11 +1,19 @@
 import { fetchHoroscope } from '@/api/post'
 import { ZodiacSign } from '@/components/ZodiacSign'
-import enTranslations from '@/translations/en.json'
-import ruTranslations from '@/translations/ru.json'
-import { Card, Modal, Placeholder, Section } from '@telegram-apps/telegram-ui'
+import { useLanguage } from '@/context/LanguageContext'
+import {
+	Button,
+	Card,
+	Image,
+	Modal,
+	Placeholder,
+	Section,
+	Text,
+	Title,
+} from '@telegram-apps/telegram-ui'
 import { ModalHeader } from '@telegram-apps/telegram-ui/dist/components/Overlays/Modal/components/ModalHeader/ModalHeader'
 import WebApp from '@twa-dev/sdk'
-import { FC, useMemo, useState } from 'react'
+import { FC, useCallback, useMemo, useState } from 'react'
 
 const zodiacSigns = [
 	{
@@ -70,11 +78,8 @@ const zodiacSigns = [
 	},
 ]
 
-const translations = {
-	en: enTranslations,
-	ru: ruTranslations,
-}
 export const IndexPage: FC = () => {
+	const { language, setLanguage, translations } = useLanguage()
 	const [selectedSign, setSelectedSign] = useState<string | null>(null)
 	const [description, setDescription] = useState<string | null>(null)
 	const userLanguageCode =
@@ -85,19 +90,32 @@ export const IndexPage: FC = () => {
 		[userLanguageCode]
 	)
 
-	const handleSignClick = async (sign: string) => {
-		setSelectedSign(sign)
-		const language = userLanguageCode === 'en' ? 'translated' : 'original'
-		try {
-			const data = await fetchHoroscope(sign, language)
-			setDescription(data.horoscope)
-		} catch (error) {
-			console.error('Failed to fetch horoscope', error)
-		}
-	}
+	const handleSignClick = useCallback(
+		async (sign: string) => {
+			setSelectedSign(sign)
+			const lang = language === 'en' ? 'translated' : 'original'
+			try {
+				const data = await fetchHoroscope(sign.toLowerCase(), lang)
+				setDescription(data.horoscope)
+			} catch (error) {
+				console.error('Failed to fetch horoscope', error)
+			}
+		},
+		[language]
+	)
 
 	return (
-		<Section header={t.zodiacPageHeader}>
+		<Section header={translations.zodiacPageHeader}>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'flex-end',
+				}}
+			>
+				<Button onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}>
+					{language === 'en' ? 'RU' : 'ENG'}
+				</Button>
+			</div>
 			<Modal
 				header={<ModalHeader>{selectedSign}</ModalHeader>}
 				trigger={
@@ -105,8 +123,10 @@ export const IndexPage: FC = () => {
 						{zodiacSigns.map(sign => (
 							<Card key={sign.name} onClick={() => handleSignClick(sign.name)}>
 								<ZodiacSign
-									name={t[sign.name] || sign.name}
-									dateRange={t[`${sign.name}DateRange`] || sign.dateRange}
+									name={translations[sign.name] || sign.name}
+									dateRange={
+										translations[`${sign.name}DateRange`] || sign.dateRange
+									}
 									icon={sign.iconUrl}
 								/>
 							</Card>
@@ -114,15 +134,13 @@ export const IndexPage: FC = () => {
 					</Placeholder>
 				}
 			>
-				<Placeholder
-					description={description}
-					header={t[selectedSign || ''] || selectedSign}
-				>
-					<img
+				<Placeholder>
+					<Image
 						src={
 							zodiacSigns.find(sign => sign.name === selectedSign)?.iconUrl ||
 							''
 						}
+						alt={selectedSign || 'Zodiac sign'}
 						style={{
 							display: 'block',
 							height: '144px',
@@ -130,6 +148,9 @@ export const IndexPage: FC = () => {
 							marginBottom: '16px',
 						}}
 					/>
+					<Title>{translations[selectedSign] || selectedSign}</Title>
+					<Text>{translations.todayHoroscope}</Text>
+					<Text>{description}</Text>
 				</Placeholder>
 			</Modal>
 		</Section>

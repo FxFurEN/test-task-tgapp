@@ -12,8 +12,8 @@ export const ZodiacSign: FC<ZodiacSignProps> = ({ name, dateRange, icon }) => {
 					src={icon}
 					style={{
 						display: 'grid',
-						height: 308,
-						width: 254,
+						maxWidth: '100%',
+						height: 'auto',
 					}}
 				/>
 				<CardCell readOnly subtitle={dateRange}>
