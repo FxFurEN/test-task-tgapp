@@ -5,7 +5,7 @@ import React, { FC } from 'react'
 
 export const ZodiacSign: FC<ZodiacSignProps> = ({ name, dateRange, icon }) => {
 	return (
-		<Card className='ml-10'>
+		<Card>
 			<React.Fragment key='.0'>
 				<img
 					alt={name}
